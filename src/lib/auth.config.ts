@@ -7,6 +7,10 @@ import type { NextAuthConfig } from "next-auth";
 // "Internal Server Error". The full provider/adapter config lives in auth.ts
 // and is only used by route handlers and server components (Node.js runtime).
 export const authConfig: NextAuthConfig = {
+  // Trust the host header Vercel forwards — without this, Auth.js's own
+  // internal origin detection can come back null on Vercel's Edge network
+  // (surfaces as `URL is malformed "null/"`), independent of NEXTAUTH_URL.
+  trustHost: true,
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   providers: [],
