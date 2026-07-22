@@ -8,14 +8,23 @@ export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const isLoginPage = req.nextUrl.pathname.startsWith("/login");
 
+  // Build redirect targets by cloning req.nextUrl and swapping pathname, rather
+  // than `new URL(path, req.nextUrl.origin)`. On Vercel's Edge network
+  // req.nextUrl.origin can be null, which makes `new URL("/", null)` produce a
+  // malformed "null/" URL and crash the middleware with a 500.
   if (!isLoggedIn && !isLoginPage) {
-    const loginUrl = new URL("/login", req.nextUrl.origin);
+    const loginUrl = req.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.search = "";
     loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
     return NextResponse.redirect(loginUrl);
   }
 
   if (isLoggedIn && isLoginPage) {
-    return NextResponse.redirect(new URL("/", req.nextUrl.origin));
+    const homeUrl = req.nextUrl.clone();
+    homeUrl.pathname = "/";
+    homeUrl.search = "";
+    return NextResponse.redirect(homeUrl);
   }
 });
 
